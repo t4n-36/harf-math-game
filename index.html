@@ -1,1 +1,27 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>Graph Transform Game</title>
+  <style>
+    canvas { border: 1px solid black; }
+  </style>
+</head>
+<body>
 
+<h2>グラフ変形ゲーム</h2>
+
+<p>目標点: (4, 0)</p>
+
+<button onclick="add()">+1</button>
+<button onclick="sub()">-1</button>
+<button onclick="diff()">微分</button>
+<button onclick="integrate()">積分</button>
+
+<canvas id="graph" width="400" height="400"></canvas>
+
+<p id="result"></p>
+
+<script src="main.js"></script>
+</body>
+</html>
