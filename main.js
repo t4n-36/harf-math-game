@@ -1,12 +1,72 @@
+// ===== 状態 =====
 
-const canvas = document.getElementById("graph");
-const ctx = canvas.getContext("2d");
+// 初期関数 f(x) = x^2
+let poly = [
+  { coef: 1, pow: 2 }
+];
 
-let func = x => x * x; // 初期関数 f(x)=x^2
+// 目標点
 const target = { x: 4, y: 0 };
 
+// ===== 表示 =====
+
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+
+document.getElementById("target").textContent =
+  `(${target.x}, ${target.y})`;
+
+// ===== 数学処理 =====
+
+// 評価
+function evaluate(poly, x) {
+  return poly.reduce(
+    (sum, t) => sum + t.coef * x ** t.pow,
+    0
+  );
+}
+
+// 微分
+function diff(poly) {
+  return poly
+    .filter(t => t.pow > 0)
+    .map(t => ({
+      coef: t.coef * t.pow,
+      pow: t.pow - 1
+    }));
+}
+
+// 積分（積分定数なし）
+function integ(poly) {
+  return poly.map(t => ({
+    coef: t.coef / (t.pow + 1),
+    pow: t.pow + 1
+  }));
+}
+
+// 定数加算
+function addConstant(poly, c) {
+  const result = [...poly];
+  result.push({ coef: c, pow: 0 });
+  return result;
+}
+
+// ===== 数式表示 =====
+
+function polyToString(poly) {
+  if (poly.length === 0) return "0";
+
+  return poly.map(t => {
+    if (t.pow === 0) return `${t.coef}`;
+    if (t.pow === 1) return `${t.coef}x`;
+    return `${t.coef}x^${t.pow}`;
+  }).join(" + ");
+}
+
+// ===== 描画 =====
+
 function draw() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.clearRect(0, 0, 400, 400);
 
   // 軸
   ctx.beginPath();
@@ -20,8 +80,9 @@ function draw() {
   ctx.beginPath();
   for (let px = -200; px <= 200; px++) {
     const x = px / 20;
-    const y = func(x);
+    const y = evaluate(poly, x);
     const py = -y * 20;
+
     if (px === -200) {
       ctx.moveTo(200 + px, 200 + py);
     } else {
@@ -33,51 +94,41 @@ function draw() {
   // 目標点
   ctx.fillStyle = "red";
   ctx.beginPath();
-  ctx.arc(200 + target.x * 20, 200 - target.y * 20, 5, 0, Math.PI * 2);
+  ctx.arc(
+    200 + target.x * 20,
+    200 - target.y * 20,
+    5,
+    0,
+    Math.PI * 2
+  );
   ctx.fill();
 
-  check();
+  // 数式表示
+  document.getElementById("formula").textContent =
+    "f(x) = " + polyToString(poly);
+
+  // クリア判定
+  const y = evaluate(poly, target.x);
+  document.getElementById("result").textContent =
+    Math.abs(y - target.y) < 1e-3 ? "🎉 クリア！" : "";
 }
 
-function check() {
-  const y = func(target.x);
-  const result = document.getElementById("result");
-  if (Math.abs(y - target.y) < 0.01) {
-    result.textContent = "🎉 クリア！";
-  } else {
-    result.textContent = "";
-  }
-}
+// ===== 操作 =====
 
-function add() {
-  const prev = func;
-  func = x => prev(x) + 1;
-  draw();
-}
-
-function sub() {
-  const prev = func;
-  func = x => prev(x) - 1;
-  draw();
-}
-
-function diff() {
-  const prev = func;
-  func = x => (prev(x + 0.001) - prev(x)) / 0.001;
+function differentiate() {
+  poly = diff(poly);
   draw();
 }
 
 function integrate() {
-  const prev = func;
-  func = x => {
-    let sum = 0;
-    const dx = 0.01;
-    for (let t = 0; t < x; t += dx) {
-      sum += prev(t) * dx;
-    }
-    return sum;
-  };
+  poly = integ(poly);
   draw();
 }
 
+function addConst(c) {
+  poly = addConstant(poly, c);
+  draw();
+}
+
+// 初期描画
 draw();
