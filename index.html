@@ -4,21 +4,25 @@
   <meta charset="UTF-8">
   <title>Graph Transform Game</title>
   <style>
+    body { font-family: sans-serif; }
     canvas { border: 1px solid black; }
+    button { margin: 4px; }
   </style>
 </head>
 <body>
 
 <h2>グラフ変形ゲーム</h2>
 
-<p>目標点: (4, 0)</p>
+<p id="formula"></p>
+<p>目標点：<span id="target"></span></p>
 
-<button onclick="add()">+1</button>
-<button onclick="sub()">-1</button>
-<button onclick="diff()">微分</button>
+<button onclick="differentiate()">微分</button>
 <button onclick="integrate()">積分</button>
+<button onclick="addConst(1)">+1</button>
+<button onclick="addConst(-1)">-1</button>
 
-<canvas id="graph" width="400" height="400"></canvas>
+<br><br>
+<canvas id="canvas" width="400" height="400"></canvas>
 
 <p id="result"></p>
 
