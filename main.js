@@ -1,14 +1,52 @@
-// ===== 状態 =====
 
-// 初期関数 f(x) = x^2
+
+// ===============================
+// 分数ユーティリティ
+// ===============================
+
+function gcd(a, b) {
+  return b === 0 ? a : gcd(b, a % b);
+}
+
+function frac(n, d = 1) {
+  if (d < 0) n = -n, d = -d;
+  const g = gcd(Math.abs(n), d);
+  return { num: n / g, den: d / g };
+}
+
+function addFrac(a, b) {
+  return frac(
+    a.num * b.den + b.num * a.den,
+    a.den * b.den
+  );
+}
+
+function mulFrac(a, b) {
+  return frac(
+    a.num * b.num,
+    a.den * b.den
+  );
+}
+
+function fracToNumber(f) {
+  return f.num / f.den;
+}
+
+// ===============================
+// 多項式の状態
+// f(x) = x^2
+// ===============================
+
 let poly = [
-  { coef: 1, pow: 2 }
+  { coef: frac(1, 1), pow: 2 }
 ];
 
 // 目標点
 const target = { x: 4, y: 0 };
 
-// ===== 表示 =====
+// ===============================
+// DOM
+// ===============================
 
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
@@ -16,30 +54,33 @@ const ctx = canvas.getContext("2d");
 document.getElementById("target").textContent =
   `(${target.x}, ${target.y})`;
 
-// ===== 数学処理 =====
+// ===============================
+// 数学処理
+// ===============================
 
-// 評価
+// 評価（描画専用：ここだけ数値化）
 function evaluate(poly, x) {
   return poly.reduce(
-    (sum, t) => sum + t.coef * x ** t.pow,
+    (sum, t) =>
+      sum + fracToNumber(t.coef) * x ** t.pow,
     0
   );
 }
 
 // 微分
-function diff(poly) {
+function differentiatePoly(poly) {
   return poly
     .filter(t => t.pow > 0)
     .map(t => ({
-      coef: t.coef * t.pow,
+      coef: frac(t.coef.num * t.pow, t.coef.den),
       pow: t.pow - 1
     }));
 }
 
 // 積分（積分定数なし）
-function integ(poly) {
+function integratePoly(poly) {
   return poly.map(t => ({
-    coef: t.coef / (t.pow + 1),
+    coef: frac(t.coef.num, t.coef.den * (t.pow + 1)),
     pow: t.pow + 1
   }));
 }
@@ -47,23 +88,35 @@ function integ(poly) {
 // 定数加算
 function addConstant(poly, c) {
   const result = [...poly];
-  result.push({ coef: c, pow: 0 });
+  result.push({ coef: frac(c, 1), pow: 0 });
   return result;
 }
 
-// ===== 数式表示 =====
+// ===============================
+// 数式表示
+// ===============================
+
+function coefToString(c) {
+  if (c.den === 1) return `${c.num}`;
+  return `${c.num}/${c.den}`;
+}
 
 function polyToString(poly) {
   if (poly.length === 0) return "0";
 
-  return poly.map(t => {
-    if (t.pow === 0) return `${t.coef}`;
-    if (t.pow === 1) return `${t.coef}x`;
-    return `${t.coef}x^${t.pow}`;
-  }).join(" + ");
+  return poly
+    .map(t => {
+      const c = coefToString(t.coef);
+      if (t.pow === 0) return c;
+      if (t.pow === 1) return `${c}x`;
+      return `${c}x^${t.pow}`;
+    })
+    .join(" + ");
 }
 
-// ===== 描画 =====
+// ===============================
+// 描画
+// ===============================
 
 function draw() {
   ctx.clearRect(0, 0, 400, 400);
@@ -113,15 +166,17 @@ function draw() {
     Math.abs(y - target.y) < 1e-3 ? "🎉 クリア！" : "";
 }
 
-// ===== 操作 =====
+// ===============================
+// 操作ボタン
+// ===============================
 
 function differentiate() {
-  poly = diff(poly);
+  poly = differentiatePoly(poly);
   draw();
 }
 
 function integrate() {
-  poly = integ(poly);
+  poly = integratePoly(poly);
   draw();
 }
 
