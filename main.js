@@ -24,35 +24,34 @@ function fracToNumber(f) {
 }
 
 // ===============================
-// 分数HTML（縦表示）
+// 分数HTML（確実に縦）
 // ===============================
 
 function fracToHTML(c) {
   if (c.den === 1) return `${c.num}`;
   return `
     <span style="
-      display:inline-block;
-      text-align:center;
+      display:inline-flex;
+      flex-direction:column;
+      align-items:center;
       vertical-align:middle;
-      line-height:1;
+      font-size:0.9em;
+      margin:0 2px;
     ">
-      <span style="display:block; border-bottom:1px solid black;">
+      <span style="border-bottom:1px solid black; padding:0 2px;">
         ${c.num}
       </span>
-      <span style="display:block;">
-        ${c.den}
-      </span>
+      <span>${c.den}</span>
     </span>
   `;
 }
 
 // ===============================
-// 多項式状態
-// f(x) = x^2
+// 多項式（初期値）
 // ===============================
 
 let poly = [
-  { coef: frac(1, 1), pow: 2 }
+  { coef: frac(1, 1), pow: 2 } // f(x)=x^2
 ];
 
 // 目標点
@@ -72,7 +71,7 @@ document.getElementById("target").textContent =
 // 数学処理
 // ===============================
 
-// 評価（描画用）
+// 評価（描画専用）
 function evaluate(poly, x) {
   return poly.reduce(
     (sum, t) => sum + fracToNumber(t.coef) * x ** t.pow,
@@ -90,7 +89,7 @@ function differentiatePoly(poly) {
     }));
 }
 
-// 積分（積分定数なし）
+// 積分（定数なし）
 function integratePoly(poly) {
   return poly.map(t => ({
     coef: frac(t.coef.num, t.coef.den * (t.pow + 1)),
@@ -98,9 +97,17 @@ function integratePoly(poly) {
   }));
 }
 
-// 定数加算
+// 定数加算（必ず合算）
 function addConstant(poly, c) {
-  return [...poly, { coef: frac(c, 1), pow: 0 }];
+  const result = [...poly];
+  const constant = result.find(t => t.pow === 0);
+
+  if (constant) {
+    constant.coef = addFrac(constant.coef, frac(c, 1));
+  } else {
+    result.push({ coef: frac(c, 1), pow: 0 });
+  }
+  return result;
 }
 
 // ===============================
@@ -134,21 +141,24 @@ function normalizePoly(poly) {
 function polyToHTML(poly) {
   if (poly.length === 0) return "0";
 
-  return poly
-    .map((t, i) => {
-      const sign =
-        t.coef.num < 0 ? "−" : (i === 0 ? "" : "+");
+  return poly.map((t, i) => {
+    const sign =
+      t.coef.num < 0 ? "−" : (i === 0 ? "" : "+");
 
-      const coefHTML = fracToHTML({
-        num: Math.abs(t.coef.num),
-        den: t.coef.den
-      });
+    const absCoef = {
+      num: Math.abs(t.coef.num),
+      den: t.coef.den
+    };
 
-      if (t.pow === 0) return `${sign}${coefHTML}`;
-      if (t.pow === 1) return `${sign}${coefHTML}x`;
-      return `${sign}${coefHTML}x<sup>${t.pow}</sup>`;
-    })
-    .join(" ");
+    const coefHTML =
+      absCoef.num === 1 && absCoef.den === 1 && t.pow !== 0
+        ? ""
+        : fracToHTML(absCoef);
+
+    if (t.pow === 0) return `${sign}${coefHTML}`;
+    if (t.pow === 1) return `${sign}${coefHTML}x`;
+    return `${sign}${coefHTML}x<sup>${t.pow}</sup>`;
+  }).join(" ");
 }
 
 // ===============================
@@ -195,7 +205,7 @@ function draw() {
   );
   ctx.fill();
 
-  // 数式
+  // 数式表示
   document.getElementById("formula").innerHTML =
     "f(x) = " + polyToHTML(poly);
 
