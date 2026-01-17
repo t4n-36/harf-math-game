@@ -2,22 +2,32 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>Graph Transform Game</title>
+  <title>Complex Graph Transform Game</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<h2>グラフ変形ゲーム</h2>
+<h2>複素数グラフ変形ゲーム</h2>
 
-<p id="formula"></p>
-<p>目標点：<span id="target"></span></p>
+<p id="info"></p>
+<p>表示平面：
+  <select id="plane">
+    <option value="RxRy">Re(x) - Re(y)</option>
+    <option value="RxIy">Re(x) - Im(y)</option>
+    <option value="IxRy">Im(x) - Re(y)</option>
+    <option value="IxIy">Im(x) - Im(y)</option>
+    <option value="RyIy">Re(y) - Im(y)</option>
+    <option value="RxIx">Re(x) - Im(x)</option>
+  </select>
+</p>
 
 <div class="buttons">
-  <button id="btn-diff">微分</button>
-  <button id="btn-int">積分</button>
-  <button id="btn-plus">+1</button>
-  <button id="btn-minus">-1</button>
-  <button id="btn-new">🔄 新しい問題</button>
+  <button id="px">+1</button>
+  <button id="mx">-1</button>
+  <button id="pi">+i</button>
+  <button id="mi">-i</button>
+  <button id="rot">回転 × i</button>
+  <button id="new">🔄 新しい問題</button>
 </div>
 
 <canvas id="canvas" width="400" height="400"></canvas>
