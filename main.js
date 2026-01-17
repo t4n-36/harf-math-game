@@ -1,141 +1,91 @@
-// ===============================
-// 複素数
-// ===============================
-function C(re, im) {
-  return { re, im };
-}
-
-// y = x^2 の複素拡張
-function f(z) {
-  return C(
-    z.re * z.re - z.im * z.im,
-    2 * z.re * z.im
-  );
-}
-
-// ===============================
-// 状態
-// ===============================
-let x = C(0, 0);
-let y = f(x);
-let plane = "reX-reY";
-
-let target = C(1, 1);
-
-// ===============================
-// Canvas
-// ===============================
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 
-// ===============================
-// 操作
-// ===============================
-function moveX(dr, di) {
-  x.re += dr;
-  x.im += di;
-  y = f(x);
-  draw();
+// ===== 状態 =====
+let plane = "reX-reY";
+let mode = "slice"; // slice | surface
+let imX = 0;
+
+// ===== 設定 =====
+const scale = 20;
+const size = 210;
+
+// ===== 実数関数 y = x^2 を複素数入力に拡張 =====
+// x = a + bi
+// y = (a^2 - b^2) + 2abi
+function f(reX, imX) {
+  return {
+    reY: reX * reX - imX * imX,
+    imY: 2 * reX * imX
+  };
 }
 
-function randomX() {
-  x = C(
-    Math.floor(Math.random() * 5) - 2,
-    Math.floor(Math.random() * 5) - 2
-  );
-  y = f(x);
-  draw();
-}
-
+// ===== UI操作 =====
 function setPlane(p) {
   plane = p;
   draw();
 }
 
-// ===============================
-// 軸値計算
-// ===============================
-function axisVal(a, b, c, d, axis) {
-  switch (axis) {
-    case "reX": return a;
-    case "imX": return b;
-    case "reY": return c;
-    case "imY": return d;
-  }
+function setMode(m) {
+  mode = m;
+  draw();
 }
 
-// ===============================
-// 描画
-// ===============================
+function setImX(v) {
+  imX = Number(v);
+  document.getElementById("imxValue").textContent = v;
+  draw();
+}
+
+// ===== 座標変換 =====
+function project(reX, imX, reY, imY) {
+  if (plane === "reX-reY") return { x: reX, y: reY };
+  if (plane === "reX-imY") return { x: reX, y: imY };
+}
+
+// ===== 描画 =====
 function drawAxes() {
+  ctx.strokeStyle = "#888";
   ctx.beginPath();
-  ctx.moveTo(210, 0);
-  ctx.lineTo(210, 420);
-  ctx.moveTo(0, 210);
-  ctx.lineTo(420, 210);
+  ctx.moveTo(size, 0);
+  ctx.lineTo(size, size * 2);
+  ctx.moveTo(0, size);
+  ctx.lineTo(size * 2, size);
   ctx.stroke();
 }
 
-function drawCurve() {
-  const [ax, ay] = plane.split("-");
-
+function drawSlice(b, color, width) {
+  ctx.strokeStyle = color;
+  ctx.lineWidth = width;
   ctx.beginPath();
 
-  // x の走査は -5..5
-  for (let A = -5; A <= 5; A += 0.1) {
-    for (let B = -5; B <= 5; B += 0.1) {
-      const z = C(A, B);
-      const w = f(z);
+  for (let px = -size; px <= size; px++) {
+    const reX = px / scale;
+    const { reY, imY } = f(reX, b);
+    const p = project(reX, b, reY, imY);
 
-      const vx = axisVal(z.re, z.im, w.re, w.im, ax);
-      const vy = axisVal(z.re, z.im, w.re, w.im, ay);
+    const cx = size + p.x * scale;
+    const cy = size - p.y * scale;
 
-      const px = 210 + vx * 20;
-      const py = 210 - vy * 20;
-
-      if (A === -5 && B === -5) ctx.moveTo(px, py);
-      else ctx.lineTo(px, py);
-    }
+    if (px === -size) ctx.moveTo(cx, cy);
+    else ctx.lineTo(cx, cy);
   }
-  ctx.strokeStyle = "#444";
   ctx.stroke();
-}
-
-function drawPoint() {
-  const [ax, ay] = plane.split("-");
-
-  const vx = axisVal(x.re, x.im, y.re, y.im, ax);
-  const vy = axisVal(x.re, x.im, y.re, y.im, ay);
-
-  ctx.fillStyle = "red";
-  ctx.beginPath();
-  ctx.arc(210 + vx * 20, 210 - vy * 20, 5, 0, Math.PI * 2);
-  ctx.fill();
-}
-
-function drawTarget() {
-  const [ax, ay] = plane.split("-");
-
-  const vx = axisVal(target.re, target.im, target.re, target.im, ax);
-  const vy = axisVal(target.re, target.im, target.re, target.im, ay);
-
-  ctx.fillStyle = "blue";
-  ctx.beginPath();
-  ctx.arc(210 + vx * 20, 210 - vy * 20, 5, 0, Math.PI * 2);
-  ctx.fill();
 }
 
 function draw() {
-  ctx.clearRect(0, 0, 420, 420);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
   drawAxes();
-  drawCurve();
-  drawPoint();
-  drawTarget();
 
-  document.getElementById("input").textContent =
-    `${x.re} + ${x.im}i`;
-  document.getElementById("output").textContent =
-    `${y.re} + ${y.im}i`;
+  if (mode === "surface") {
+    for (let b = -5; b <= 5; b += 0.5) {
+      drawSlice(b, "rgba(0,0,0,0.08)", 1);
+    }
+  }
+
+  // 現在の断面（強調）
+  drawSlice(imX, "#1976d2", 2);
 }
 
+// 初期描画
 draw();
