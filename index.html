@@ -7,17 +7,12 @@
 </head>
 <body>
 
-<h2>y = x² の複素数拡張（4次元 → 2次元射影）</h2>
+<h1>y = x² の複素数拡張（4次元 → 2次元射影）</h1>
 
-<div id="info">
-
-  <div id="formula">
-    y = x²　（x = reX + i·imX）
-  </div>
-
-  <div class="row">
+<div id="ui">
+  <div>
     表示平面：
-    <select onchange="setPlane(this.value)">
+    <select id="planeSelect">
       <option value="reX-reY">reX × reY</option>
       <option value="reX-imX">reX × imX</option>
       <option value="reX-imY">reX × imY</option>
@@ -27,42 +22,12 @@
     </select>
   </div>
 
-  <div class="row">
-    表示モード：
-    <label>
-      <input type="radio" name="mode" value="slice"
-             checked onchange="setMode(this.value)">
-      断面
-    </label>
-    <label>
-      <input type="radio" name="mode" value="surface"
-             onchange="setMode(this.value)">
-      面
-    </label>
-  </div>
-
-  <div class="row">
-    imX（固定値）：
-    <input
-      type="range"
-      min="-10"
-      max="10"
-      step="1"
-      value="0"
-      oninput="setImX(this.value)"
-    >
-    <span id="imxValue">0</span> i
-  </div>
-
+  <div id="fixedControls"></div>
 </div>
 
-<canvas id="canvas" width="420" height="420"></canvas>
-
-<p class="note">
-  ・断面：imX を固定した 1 本の曲線<br>
-  ・面：imX を動かしたすべての断面を重ね表示
-</p>
+<canvas id="canvas" width="500" height="500"></canvas>
 
 <script src="main.js"></script>
 </body>
 </html>
+
