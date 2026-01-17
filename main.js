@@ -1,163 +1,147 @@
 // ===============================
-// 分数ユーティリティ
+// 複素数ユーティリティ
 // ===============================
-function gcd(a, b) {
-  return b === 0 ? a : gcd(b, a % b);
+function C(re, im) {
+  return { re, im };
 }
 
-function frac(n, d = 1) {
-  if (d < 0) n = -n, d = -d;
-  const g = gcd(Math.abs(n), d);
-  return { num: n / g, den: d / g };
+function add(a, b) {
+  return C(a.re + b.re, a.im + b.im);
 }
 
-function addFrac(a, b) {
-  return frac(
-    a.num * b.den + b.num * a.den,
-    a.den * b.den
+function mul(a, b) {
+  return C(
+    a.re * b.re - a.im * b.im,
+    a.re * b.im + a.im * b.re
   );
 }
 
-function fracToNumber(f) {
-  return f.num / f.den;
+// ===============================
+// 状態
+// ===============================
+let A, B;           // f(z) = A z + B
+let target;         // 複素数目標
+let plane = "reX-reY";
+
+// ===============================
+// Canvas
+// ===============================
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+
+// ===============================
+// 問題生成
+// ===============================
+function rnd(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-// ===============================
-// 分数HTML（縦表示）
-// ===============================
-function fracToHTML(c) {
-  if (c.den === 1) return `${c.num}`;
-  return `
-  <span style="display:inline-flex;flex-direction:column;align-items:center;">
-    <span style="border-bottom:1px solid black">${c.num}</span>
-    <span>${c.den}</span>
-  </span>`;
-}
-
-// ===============================
-// グローバル状態
-// ===============================
-let poly = [];
-let target = { x: 0, y: 0 };
-
-// ===============================
-// 問題生成（★ここが今まで無かった）
-// ===============================
 function newProblem() {
-  // 初期多項式：ax²（aは1〜3）
-  const a = Math.floor(Math.random() * 3) + 1;
-  poly = [{ coef: frac(a, 1), pow: 2 }];
-
-  // 目標点（整数）
-  target = {
-    x: Math.floor(Math.random() * 5) - 2,
-    y: Math.floor(Math.random() * 5) - 2
-  };
-
-  document.getElementById("target").textContent =
-    `(${target.x}, ${target.y})`;
-
-  document.getElementById("result").textContent = "";
+  A = C(rnd(-2, 2), rnd(-2, 2));
+  B = C(rnd(-3, 3), rnd(-3, 3));
+  target = C(rnd(-4, 4), rnd(-4, 4));
   draw();
 }
 
 // ===============================
-// 数学処理
+// 操作
 // ===============================
-function evaluate(poly, x) {
-  return poly.reduce(
-    (sum, t) => sum + fracToNumber(t.coef) * x ** t.pow,
-    0
-  );
-}
-
-function differentiate() {
-  poly = poly
-    .filter(t => t.pow > 0)
-    .map(t => ({
-      coef: frac(t.coef.num * t.pow, t.coef.den),
-      pow: t.pow - 1
-    }));
+function addRe() {
+  B.re += 1;
   draw();
 }
 
-function integrate() {
-  poly = poly.map(t => ({
-    coef: frac(t.coef.num, t.coef.den * (t.pow + 1)),
-    pow: t.pow + 1
-  }));
+function addIm() {
+  B.im += 1;
   draw();
 }
 
-function addConst(c) {
-  const t = poly.find(t => t.pow === 0);
-  if (t) t.coef = addFrac(t.coef, frac(c, 1));
-  else poly.push({ coef: frac(c, 1), pow: 0 });
+function rotate() {
+  A = mul(A, C(0, 1));
+  B = mul(B, C(0, 1));
+  draw();
+}
+
+function setPlane(p) {
+  plane = p;
   draw();
 }
 
 // ===============================
-// 表示
+// 数学
 // ===============================
-function polyToHTML(poly) {
-  return poly.map((t, i) => {
-    const sign = t.coef.num < 0 ? "−" : (i ? "+" : "");
-    const coef = {
-      num: Math.abs(t.coef.num),
-      den: t.coef.den
-    };
-    const c = (coef.num === 1 && coef.den === 1 && t.pow)
-      ? ""
-      : fracToHTML(coef);
-    if (t.pow === 0) return `${sign}${c}`;
-    if (t.pow === 1) return `${sign}${c}x`;
-    return `${sign}${c}x<sup>${t.pow}</sup>`;
-  }).join(" ");
+function f(x) {
+  return add(mul(A, C(x, 0)), B);
+}
+
+// 4軸の定義
+function axisValue(x, z, axis) {
+  switch (axis) {
+    case "reX": return x;
+    case "imX": return 0;
+    case "reY": return z.re;
+    case "imY": return z.im;
+  }
 }
 
 // ===============================
 // 描画
 // ===============================
-const canvas = document.getElementById("canvas");
-const ctx = canvas.getContext("2d");
-
-function draw() {
-  ctx.clearRect(0, 0, 400, 400);
-
-  // 軸
+function drawAxes() {
   ctx.beginPath();
-  ctx.moveTo(200, 0);
-  ctx.lineTo(200, 400);
-  ctx.moveTo(0, 200);
-  ctx.lineTo(400, 200);
+  ctx.moveTo(210, 0);
+  ctx.lineTo(210, 420);
+  ctx.moveTo(0, 210);
+  ctx.lineTo(420, 210);
   ctx.stroke();
-
-  // グラフ
-  ctx.beginPath();
-  for (let px = -200; px <= 200; px++) {
-    const x = px / 20;
-    const y = evaluate(poly, x);
-    const py = -y * 20;
-    px === -200
-      ? ctx.moveTo(200 + px, 200 + py)
-      : ctx.lineTo(200 + px, 200 + py);
-  }
-  ctx.stroke();
-
-  // 目標点
-  ctx.fillStyle = "red";
-  ctx.beginPath();
-  ctx.arc(200 + target.x * 20, 200 - target.y * 20, 5, 0, Math.PI * 2);
-  ctx.fill();
-
-  document.getElementById("formula").innerHTML =
-    "f(x) = " + polyToHTML(poly);
-
-  const y = evaluate(poly, target.x);
-  document.getElementById("result").textContent =
-    Math.abs(y - target.y) < 1e-6 ? "🎉 クリア！" : "";
 }
 
-// 初期問題
-newProblem();
+function drawGraph() {
+  const [ax, ay] = plane.split("-");
 
+  ctx.beginPath();
+  for (let px = -210; px <= 210; px++) {
+    const x = px / 20;
+    const z = f(x);
+
+    const vx = axisValue(x, z, ax);
+    const vy = axisValue(x, z, ay);
+
+    const cx = 210 + vx * 20;
+    const cy = 210 - vy * 20;
+
+    if (px === -210) ctx.moveTo(cx, cy);
+    else ctx.lineTo(cx, cy);
+  }
+  ctx.stroke();
+}
+
+function drawTarget() {
+  const [ax, ay] = plane.split("-");
+
+  const tx = axisValue(target.re, target, ax);
+  const ty = axisValue(target.re, target, ay);
+
+  ctx.fillStyle = "red";
+  ctx.beginPath();
+  ctx.arc(210 + tx * 20, 210 - ty * 20, 5, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function draw() {
+  ctx.clearRect(0, 0, 420, 420);
+  drawAxes();
+  drawGraph();
+  drawTarget();
+
+  document.getElementById("formula").textContent =
+    `f(z)=(${A.re}+${A.im}i)z+(${B.re}+${B.im}i)`;
+
+  document.getElementById("target").textContent =
+    `(${target.re}, ${target.im})`;
+
+  document.getElementById("result").textContent = "";
+}
+
+// 初期化
+newProblem();
