@@ -23,7 +23,7 @@ function fracToNumber(f) {
 }
 
 // ===============================
-// 分数HTML（縦分数）
+// 分数HTML
 // ===============================
 function fracToHTML(c) {
   if (c.den === 1) return `${c.num}`;
@@ -36,23 +36,16 @@ function fracToHTML(c) {
 }
 
 // ===============================
-// 多項式（初期値）
+// ゲーム状態
 // ===============================
-let poly = [
-  { coef: frac(1, 1), pow: 2 } // x^2
-];
-
-// 目標点
-const target = { x: 4, y: 0 };
+let poly = [];
+let target = { x: 0, y: 0 };
 
 // ===============================
 // DOM
 // ===============================
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
-
-document.getElementById("target").textContent =
-  `(${target.x}, ${target.y})`;
 
 // ===============================
 // 数学処理
@@ -93,7 +86,7 @@ function addConstant(poly, c) {
 }
 
 // ===============================
-// 正規化（同次数まとめる）
+// 正規化
 // ===============================
 function normalizePoly(poly) {
   const map = {};
@@ -116,7 +109,7 @@ function normalizePoly(poly) {
 }
 
 // ===============================
-// 数式表示
+// 表示
 // ===============================
 function polyToHTML(poly) {
   if (poly.length === 0) return "0";
@@ -163,11 +156,8 @@ function draw() {
     const y = evaluate(poly, x);
     const py = -y * 20;
 
-    if (px === -200) {
-      ctx.moveTo(200 + px, 200 + py);
-    } else {
-      ctx.lineTo(200 + px, 200 + py);
-    }
+    if (px === -200) ctx.moveTo(200 + px, 200 + py);
+    else ctx.lineTo(200 + px, 200 + py);
   }
   ctx.stroke();
 
@@ -186,16 +176,19 @@ function draw() {
   document.getElementById("formula").innerHTML =
     "f(x) = " + polyToHTML(poly);
 
+  document.getElementById("target").textContent =
+    `(${target.x}, ${target.y})`;
+
   const y = evaluate(poly, target.x);
   document.getElementById("result").textContent =
     Math.abs(y - target.y) < 1e-6 ? "🎉 クリア！" : "";
 }
 
 // ===============================
-// 操作（必ず正規化）
+// 操作
 // ===============================
-function setPoly(newPoly) {
-  poly = normalizePoly(newPoly);
+function setPoly(p) {
+  poly = normalizePoly(p);
   draw();
 }
 
@@ -211,4 +204,32 @@ function addConst(c) {
   setPoly(addConstant(poly, c));
 }
 
-draw();
+// ===============================
+// ランダム問題生成
+// ===============================
+function randInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function newProblem() {
+  const a = randInt(1, 3);
+  const b = randInt(-3, 3);
+  const c = randInt(-3, 3);
+
+  poly = [
+    { coef: frac(a, 1), pow: 2 },
+    { coef: frac(b, 1), pow: 1 },
+    { coef: frac(c, 1), pow: 0 }
+  ];
+
+  target = {
+    x: randInt(-4, 4),
+    y: randInt(-4, 4)
+  };
+
+  document.getElementById("result").textContent = "";
+  draw();
+}
+
+// 初期化
+newProblem();
