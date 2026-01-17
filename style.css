@@ -1,1 +1,100 @@
+/* ===== 全体 ===== */
+body {
+  font-family: "Segoe UI", "Hiragino Kaku Gothic ProN", sans-serif;
+  background: linear-gradient(120deg, #f0f4ff, #e6f7ff);
+  margin: 0;
+  padding: 0;
+  color: #222;
+}
 
+h2 {
+  margin-top: 0;
+  padding-top: 20px;
+  text-align: center;
+  letter-spacing: 1px;
+}
+
+/* ===== レイアウト ===== */
+.container {
+  max-width: 900px;
+  margin: auto;
+  padding: 20px;
+}
+
+.game-area {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* ===== 情報表示 ===== */
+#formula {
+  font-size: 1.3em;
+  font-weight: bold;
+  background: #ffffffcc;
+  padding: 10px 14px;
+  border-radius: 8px;
+  text-align: center;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+}
+
+#target {
+  font-weight: bold;
+  color: #d32f2f;
+}
+
+#result {
+  font-size: 1.4em;
+  font-weight: bold;
+  color: #2e7d32;
+  text-align: center;
+  margin-top: 10px;
+}
+
+/* ===== ボタン ===== */
+button {
+  appearance: none;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 16px;
+  margin: 4px;
+  font-size: 0.95em;
+  cursor: pointer;
+  background: linear-gradient(135deg, #4f8cff, #3f6cff);
+  color: white;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+  transition: transform 0.1s ease, box-shadow 0.1s ease, opacity 0.1s ease;
+}
+
+button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(0,0,0,0.2);
+  opacity: 0.95;
+}
+
+button:active {
+  transform: translateY(0);
+  box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+}
+
+/* 操作系ボタンの色分け */
+button:nth-child(1) { background: linear-gradient(135deg, #ff8a65, #ff7043); }
+button:nth-child(2) { background: linear-gradient(135deg, #81c784, #66bb6a); }
+button:nth-child(3) { background: linear-gradient(135deg, #ffd54f, #ffca28); color: #333; }
+button:nth-child(4) { background: linear-gradient(135deg, #64b5f6, #42a5f5); }
+
+/* ===== キャンバス ===== */
+canvas {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+}
+
+/* ===== フッター感 ===== */
+footer {
+  text-align: center;
+  font-size: 0.8em;
+  color: #666;
+  margin-top: 20px;
+}
