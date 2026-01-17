@@ -36,7 +36,7 @@ function fracToHTML(c) {
 }
 
 // ===============================
-// ゲーム状態
+// 状態
 // ===============================
 let poly = [];
 let target = { x: 0, y: 0 };
@@ -85,9 +85,6 @@ function addConstant(poly, c) {
   return result;
 }
 
-// ===============================
-// 正規化
-// ===============================
 function normalizePoly(poly) {
   const map = {};
 
@@ -141,7 +138,6 @@ function draw() {
 
   ctx.clearRect(0, 0, 400, 400);
 
-  // 軸
   ctx.beginPath();
   ctx.moveTo(200, 0);
   ctx.lineTo(200, 400);
@@ -149,7 +145,6 @@ function draw() {
   ctx.lineTo(400, 200);
   ctx.stroke();
 
-  // グラフ
   ctx.beginPath();
   for (let px = -200; px <= 200; px++) {
     const x = px / 20;
@@ -161,7 +156,6 @@ function draw() {
   }
   ctx.stroke();
 
-  // 目標点
   ctx.fillStyle = "red";
   ctx.beginPath();
   ctx.arc(
@@ -185,41 +179,17 @@ function draw() {
 }
 
 // ===============================
-// 操作
-// ===============================
-function setPoly(p) {
-  poly = normalizePoly(p);
-  draw();
-}
-
-function differentiate() {
-  setPoly(differentiatePoly(poly));
-}
-
-function integrate() {
-  setPoly(integratePoly(poly));
-}
-
-function addConst(c) {
-  setPoly(addConstant(poly, c));
-}
-
-// ===============================
-// ランダム問題生成
+// ランダム問題
 // ===============================
 function randInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
 function newProblem() {
-  const a = randInt(1, 3);
-  const b = randInt(-3, 3);
-  const c = randInt(-3, 3);
-
   poly = [
-    { coef: frac(a, 1), pow: 2 },
-    { coef: frac(b, 1), pow: 1 },
-    { coef: frac(c, 1), pow: 0 }
+    { coef: frac(randInt(1, 3), 1), pow: 2 },
+    { coef: frac(randInt(-3, 3), 1), pow: 1 },
+    { coef: frac(randInt(-3, 3), 1), pow: 0 }
   ];
 
   target = {
@@ -230,6 +200,23 @@ function newProblem() {
   document.getElementById("result").textContent = "";
   draw();
 }
+
+// ===============================
+// イベント登録（重要）
+// ===============================
+document.getElementById("btn-diff").onclick = () =>
+  poly = (draw(), normalizePoly(differentiatePoly(poly)));
+
+document.getElementById("btn-int").onclick = () =>
+  poly = (draw(), normalizePoly(integratePoly(poly)));
+
+document.getElementById("btn-plus").onclick = () =>
+  poly = (draw(), normalizePoly(addConstant(poly, 1)));
+
+document.getElementById("btn-minus").onclick = () =>
+  poly = (draw(), normalizePoly(addConstant(poly, -1)));
+
+document.getElementById("btn-new").onclick = newProblem;
 
 // 初期化
 newProblem();
