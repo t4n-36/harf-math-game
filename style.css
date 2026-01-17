@@ -1,60 +1,21 @@
 body {
-  font-family: system-ui, sans-serif;
-  background: #eef2ff;
-  margin: 0;
-  padding: 0;
+  font-family: sans-serif;
   text-align: center;
-}
-
-h2 {
-  margin: 12px 0;
+  background: #f5f7ff;
 }
 
 #info {
-  margin: 8px;
-}
-
-#formula {
-  font-size: 1.2em;
+  margin: 10px;
   font-weight: bold;
-  margin-bottom: 4px;
 }
 
-#projection {
-  margin: 8px;
-}
-
-#controls {
-  margin: 8px;
-}
-
-button, select {
+#controls button {
   margin: 4px;
-  padding: 8px 12px;
-  border-radius: 6px;
-  border: none;
-  cursor: pointer;
-  font-size: 0.9em;
-}
-
-button {
-  background: #4f7cff;
-  color: white;
-}
-
-button:hover {
-  opacity: 0.9;
+  padding: 6px 10px;
 }
 
 canvas {
-  margin: 10px auto;
-  display: block;
   background: white;
   border: 1px solid #333;
-}
-
-#result {
-  font-size: 1.3em;
-  font-weight: bold;
-  margin-top: 6px;
+  margin-top: 10px;
 }
