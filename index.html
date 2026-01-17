@@ -1,8 +1,8 @@
-<!DOCTYPE html>
+\<!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>y = x² の複素数拡張（4D → 2D）</title>
+  <title>y = x² 複素数拡張（4D→2D）</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -14,12 +14,16 @@
     表示平面：
     <select id="planeSelect">
       <option value="reX-reY">reX × reY</option>
-      <option value="reX-imX">reX × imX</option>
       <option value="reX-imY">reX × imY</option>
       <option value="imX-reY">imX × reY</option>
       <option value="imX-imY">imX × imY</option>
-      <option value="reY-imY">reY × imY</option>
     </select>
+  </div>
+
+  <div>
+    表示モード：
+    <label><input type="radio" name="mode" value="slice" checked> 断面</label>
+    <label><input type="radio" name="mode" value="surface"> 面</label>
   </div>
 
   <div id="fixedControls"></div>
@@ -30,4 +34,3 @@
 <script src="main.js"></script>
 </body>
 </html>
-
