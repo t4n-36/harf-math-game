@@ -1,51 +1,125 @@
-\// ===============================
-// 複素数ユーティリティ
 // ===============================
-function complex(re, im) {
-  return { re, im };
+// 分数ユーティリティ
+// ===============================
+function gcd(a, b) {
+  return b === 0 ? a : gcd(b, a % b);
 }
 
-function add(a, b) {
-  return complex(a.re + b.re, a.im + b.im);
+function frac(n, d = 1) {
+  if (d < 0) n = -n, d = -d;
+  const g = gcd(Math.abs(n), d);
+  return { num: n / g, den: d / g };
 }
 
-function mulI(z) {
-  // z * i
-  return complex(-z.im, z.re);
+function addFrac(a, b) {
+  return frac(
+    a.num * b.den + b.num * a.den,
+    a.den * b.den
+  );
+}
+
+function fracToNumber(f) {
+  return f.num / f.den;
 }
 
 // ===============================
-// ゲーム状態
+// 分数HTML（縦表示）
 // ===============================
-
-// 入力 w と出力 z = f(w)（今は恒等関数）
-let w = complex(0, 0);
-let z = complex(0, 0);
-
-// ターゲット
-let targetW = complex(0, 0);
-let targetZ = complex(0, 0);
+function fracToHTML(c) {
+  if (c.den === 1) return `${c.num}`;
+  return `
+  <span style="display:inline-flex;flex-direction:column;align-items:center;">
+    <span style="border-bottom:1px solid black">${c.num}</span>
+    <span>${c.den}</span>
+  </span>`;
+}
 
 // ===============================
-// DOM
+// グローバル状態
 // ===============================
-const canvas = document.getElementById("canvas");
-const ctx = canvas.getContext("2d");
-const planeSelect = document.getElementById("plane");
+let poly = [];
+let target = { x: 0, y: 0 };
+
+// ===============================
+// 問題生成（★ここが今まで無かった）
+// ===============================
+function newProblem() {
+  // 初期多項式：ax²（aは1〜3）
+  const a = Math.floor(Math.random() * 3) + 1;
+  poly = [{ coef: frac(a, 1), pow: 2 }];
+
+  // 目標点（整数）
+  target = {
+    x: Math.floor(Math.random() * 5) - 2,
+    y: Math.floor(Math.random() * 5) - 2
+  };
+
+  document.getElementById("target").textContent =
+    `(${target.x}, ${target.y})`;
+
+  document.getElementById("result").textContent = "";
+  draw();
+}
+
+// ===============================
+// 数学処理
+// ===============================
+function evaluate(poly, x) {
+  return poly.reduce(
+    (sum, t) => sum + fracToNumber(t.coef) * x ** t.pow,
+    0
+  );
+}
+
+function differentiate() {
+  poly = poly
+    .filter(t => t.pow > 0)
+    .map(t => ({
+      coef: frac(t.coef.num * t.pow, t.coef.den),
+      pow: t.pow - 1
+    }));
+  draw();
+}
+
+function integrate() {
+  poly = poly.map(t => ({
+    coef: frac(t.coef.num, t.coef.den * (t.pow + 1)),
+    pow: t.pow + 1
+  }));
+  draw();
+}
+
+function addConst(c) {
+  const t = poly.find(t => t.pow === 0);
+  if (t) t.coef = addFrac(t.coef, frac(c, 1));
+  else poly.push({ coef: frac(c, 1), pow: 0 });
+  draw();
+}
+
+// ===============================
+// 表示
+// ===============================
+function polyToHTML(poly) {
+  return poly.map((t, i) => {
+    const sign = t.coef.num < 0 ? "−" : (i ? "+" : "");
+    const coef = {
+      num: Math.abs(t.coef.num),
+      den: t.coef.den
+    };
+    const c = (coef.num === 1 && coef.den === 1 && t.pow)
+      ? ""
+      : fracToHTML(coef);
+    if (t.pow === 0) return `${sign}${c}`;
+    if (t.pow === 1) return `${sign}${c}x`;
+    return `${sign}${c}x<sup>${t.pow}</sup>`;
+  }).join(" ");
+}
 
 // ===============================
 // 描画
 // ===============================
-function getCoords(plane, w, z) {
-  switch (plane) {
-    case "RxRy": return [w.re, z.re];
-    case "RxIy": return [w.re, z.im];
-    case "IxRy": return [w.im, z.re];
-    case "IxIy": return [w.im, z.im];
-    case "RyIy": return [z.re, z.im];
-    case "RxIx": return [w.re, w.im];
-  }
-}
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
 
 function draw() {
   ctx.clearRect(0, 0, 400, 400);
@@ -58,79 +132,32 @@ function draw() {
   ctx.lineTo(400, 200);
   ctx.stroke();
 
-  const plane = planeSelect.value;
-
-  // 現在点
-  let [x, y] = getCoords(plane, w, z);
-  ctx.fillStyle = "blue";
+  // グラフ
   ctx.beginPath();
-  ctx.arc(200 + x * 40, 200 - y * 40, 5, 0, Math.PI * 2);
-  ctx.fill();
+  for (let px = -200; px <= 200; px++) {
+    const x = px / 20;
+    const y = evaluate(poly, x);
+    const py = -y * 20;
+    px === -200
+      ? ctx.moveTo(200 + px, 200 + py)
+      : ctx.lineTo(200 + px, 200 + py);
+  }
+  ctx.stroke();
 
   // 目標点
-  let [tx, ty] = getCoords(plane, targetW, targetZ);
   ctx.fillStyle = "red";
   ctx.beginPath();
-  ctx.arc(200 + tx * 40, 200 - ty * 40, 5, 0, Math.PI * 2);
+  ctx.arc(200 + target.x * 20, 200 - target.y * 20, 5, 0, Math.PI * 2);
   ctx.fill();
 
-  document.getElementById("info").textContent =
-    `w = ${w.re} + ${w.im}i , z = ${z.re} + ${z.im}i`;
+  document.getElementById("formula").innerHTML =
+    "f(x) = " + polyToHTML(poly);
 
-  // クリア判定（4成分すべて一致）
-  const clear =
-    w.re === targetW.re &&
-    w.im === targetW.im &&
-    z.re === targetZ.re &&
-    z.im === targetZ.im;
-
+  const y = evaluate(poly, target.x);
   document.getElementById("result").textContent =
-    clear ? "🎉 完全一致！" : "";
+    Math.abs(y - target.y) < 1e-6 ? "🎉 クリア！" : "";
 }
 
-// ===============================
-// 操作
-// ===============================
-function move(dx, di) {
-  w = add(w, complex(dx, di));
-  z = add(z, complex(dx, di)); // 今は恒等
-  draw();
-}
-
-function rotate() {
-  w = mulI(w);
-  z = mulI(z);
-  draw();
-}
-
-// ===============================
-// ランダム問題
-// ===============================
-function rand() {
-  return Math.floor(Math.random() * 5) - 2;
-}
-
-function newProblem() {
-  w = complex(0, 0);
-  z = complex(0, 0);
-
-  targetW = complex(rand(), rand());
-  targetZ = complex(rand(), rand());
-
-  document.getElementById("result").textContent = "";
-  draw();
-}
-
-// ===============================
-// イベント
-// ===============================
-document.getElementById("px").onclick = () => move(1, 0);
-document.getElementById("mx").onclick = () => move(-1, 0);
-document.getElementById("pi").onclick = () => move(0, 1);
-document.getElementById("mi").onclick = () => move(0, -1);
-document.getElementById("rot").onclick = rotate;
-document.getElementById("new").onclick = newProblem;
-planeSelect.onchange = draw;
-
-// 初期化
+// 初期問題
 newProblem();
+
