@@ -3,11 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Graph Transform Game</title>
-  <style>
-    body { font-family: sans-serif; }
-    canvas { border: 1px solid black; }
-    button { margin: 4px; }
-  </style>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
@@ -16,12 +12,13 @@
 <p id="formula"></p>
 <p>目標点：<span id="target"></span></p>
 
-<button onclick="differentiate()">微分</button>
-<button onclick="integrate()">積分</button>
-<button onclick="addConst(1)">+1</button>
-<button onclick="addConst(-1)">-1</button>
+<div class="buttons">
+  <button onclick="differentiate()">微分</button>
+  <button onclick="integrate()">積分</button>
+  <button onclick="addConst(1)">+1</button>
+  <button onclick="addConst(-1)">-1</button>
+</div>
 
-<br><br>
 <canvas id="canvas" width="400" height="400"></canvas>
 
 <p id="result"></p>
