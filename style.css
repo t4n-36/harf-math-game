@@ -1,19 +1,27 @@
 body {
   font-family: sans-serif;
-  background: #f4f6fb;
+  background: #f5f7fa;
   text-align: center;
 }
 
-#info {
-  background: white;
-  display: inline-block;
-  padding: 10px 15px;
-  border-radius: 8px;
-  margin-bottom: 8px;
+h1 {
+  margin-top: 20px;
+}
+
+#ui {
+  margin: 15px;
+}
+
+#fixedControls {
+  margin-top: 10px;
+}
+
+label {
+  margin: 0 10px;
 }
 
 canvas {
   background: white;
-  border-radius: 10px;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+  border: 1px solid #aaa;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
 }
