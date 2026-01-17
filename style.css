@@ -1,21 +1,29 @@
 body {
   font-family: sans-serif;
+  background: #f5f7fb;
   text-align: center;
-  background: #f5f7ff;
+}
+
+h2 {
+  margin-top: 10px;
 }
 
 #info {
-  margin: 10px;
-  font-weight: bold;
-}
-
-#controls button {
-  margin: 4px;
-  padding: 6px 10px;
+  margin: 10px auto;
+  background: white;
+  display: inline-block;
+  padding: 10px 15px;
+  border-radius: 8px;
 }
 
 canvas {
   background: white;
-  border: 1px solid #333;
+  border-radius: 10px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.2);
   margin-top: 10px;
+}
+
+.note {
+  font-size: 0.85em;
+  color: #555;
 }
