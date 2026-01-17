@@ -19,8 +19,8 @@ function mul(a, b) {
 // ===============================
 // 状態
 // ===============================
-let A, B;           // f(z) = A z + B
-let target;         // 複素数目標
+let A, B;        // f(z) = A z + B
+let target;      // 複素数ターゲット
 let plane = "reX-reY";
 
 // ===============================
@@ -74,7 +74,11 @@ function f(x) {
   return add(mul(A, C(x, 0)), B);
 }
 
-// 4軸の定義
+// 4軸の意味付け
+// reX : 入力 x の実部
+// imX : 入力 x の虚部（今回は 0）
+// reY : 出力の実部
+// imY : 出力の虚部
 function axisValue(x, z, axis) {
   switch (axis) {
     case "reX": return x;
@@ -143,5 +147,7 @@ function draw() {
   document.getElementById("result").textContent = "";
 }
 
+// ===============================
 // 初期化
+// ===============================
 newProblem();
