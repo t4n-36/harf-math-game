@@ -3,19 +3,29 @@ const ctx = canvas.getContext("2d");
 
 const size = 210;
 const scale = 20;
-const range = 10; // ← 描画範囲を拡張
+const range = 10;
 
 let plane = "reX-reY";
 let mode = "slice";
 let imX = 0;
 
-// ===== y = x^2（x 複素数） =====
+// ===== y = x^2（x は複素数）=====
 function f(reX, imX) {
   return {
+    reX,
+    imX,
     reY: reX * reX - imX * imX,
     imY: 2 * reX * imX
   };
 }
+
+// ===== 軸定義（★ここが核心）=====
+const axisGetter = {
+  reX: z => z.reX,
+  imX: z => z.imX,
+  reY: z => z.reY,
+  imY: z => z.imY
+};
 
 // ===== UI =====
 function setPlane(p) {
@@ -34,24 +44,17 @@ function setImX(v) {
   draw();
 }
 
-// ===== 射影 =====
-function project(reX, imX, reY, imY) {
-  if (plane === "reX-reY") return { x: reX, y: reY };
-  if (plane === "reX-imY") return { x: reX, y: imY };
-}
-
 // ===== 表示用文字 =====
 function axisValueText(axis, v) {
   if (axis.startsWith("re")) return v.toString();
   if (axis.startsWith("im")) return v === 1 ? "i" : `${v}i`;
 }
 
-// ===== 軸描画（意味付き） =====
-function drawAxes() {
+// ===== 軸描画 =====
+function drawAxes(xAxis, yAxis) {
   ctx.strokeStyle = "#555";
   ctx.lineWidth = 1;
 
-  // 軸
   ctx.beginPath();
   ctx.moveTo(size, 0);
   ctx.lineTo(size, size * 2);
@@ -59,7 +62,6 @@ function drawAxes() {
   ctx.lineTo(size * 2, size);
   ctx.stroke();
 
-  const [xAxis, yAxis] = plane.split("-");
   ctx.font = "11px sans-serif";
   ctx.fillStyle = "#222";
 
@@ -75,47 +77,41 @@ function drawAxes() {
   for (let i = -range; i <= range; i++) {
     const p = i * scale;
 
-    // x軸
+    // x
     ctx.beginPath();
     ctx.moveTo(size + p, size - 4);
     ctx.lineTo(size + p, size + 4);
     ctx.stroke();
-    if (i !== 0) {
-      ctx.fillText(
-        axisValueText(xAxis, i),
-        size + p - 6,
-        size + 18
-      );
-    }
+    if (i !== 0)
+      ctx.fillText(axisValueText(xAxis, i), size + p - 6, size + 18);
 
-    // y軸
+    // y
     ctx.beginPath();
     ctx.moveTo(size - 4, size - p);
     ctx.lineTo(size + 4, size - p);
     ctx.stroke();
-    if (i !== 0) {
-      ctx.fillText(
-        axisValueText(yAxis, i),
-        size + 8,
-        size - p + 4
-      );
-    }
+    if (i !== 0)
+      ctx.fillText(axisValueText(yAxis, i), size + 8, size - p + 4);
   }
 }
 
-// ===== 曲線 =====
+// ===== 曲線描画 =====
 function drawSlice(b, color, width) {
+  const [xAxis, yAxis] = plane.split("-");
+
   ctx.strokeStyle = color;
   ctx.lineWidth = width;
   ctx.beginPath();
 
   for (let px = -size; px <= size; px++) {
     const reX = px / scale;
-    const { reY, imY } = f(reX, b);
-    const p = project(reX, b, reY, imY);
+    const z = f(reX, b);
 
-    const cx = size + p.x * scale;
-    const cy = size - p.y * scale;
+    const xVal = axisGetter[xAxis](z);
+    const yVal = axisGetter[yAxis](z);
+
+    const cx = size + xVal * scale;
+    const cy = size - yVal * scale;
 
     if (px === -size) ctx.moveTo(cx, cy);
     else ctx.lineTo(cx, cy);
@@ -123,10 +119,12 @@ function drawSlice(b, color, width) {
   ctx.stroke();
 }
 
-// ===== 全体 =====
+// ===== 全体描画 =====
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  drawAxes();
+
+  const [xAxis, yAxis] = plane.split("-");
+  drawAxes(xAxis, yAxis);
 
   if (mode === "surface") {
     for (let b = -range; b <= range; b += 0.5) {
@@ -138,3 +136,4 @@ function draw() {
 }
 
 draw();
+
