@@ -1,17 +1,8 @@
 body {
   font-family: "Segoe UI", "Hiragino Kaku Gothic ProN", sans-serif;
-  background: linear-gradient(120deg, #f0f4ff, #e6f7ff);
+  background: linear-gradient(120deg, #eef3ff, #e0f7fa);
   text-align: center;
   padding: 20px;
-}
-
-#formula {
-  font-size: 1.4em;
-  font-weight: bold;
-  background: #fff;
-  padding: 10px;
-  border-radius: 8px;
-  display: inline-block;
 }
 
 .buttons {
@@ -31,28 +22,11 @@ button {
 canvas {
   background: white;
   border-radius: 12px;
-  margin-top: 10px;
   box-shadow: 0 8px 20px rgba(0,0,0,0.2);
 }
 
-.fraction {
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
-  font-size: 0.9em;
-}
-
-.fraction .top {
-  border-bottom: 1px solid black;
-  padding: 0 4px;
-}
-
-.fraction .bottom {
-  padding: 0 4px;
-}
-
 #result {
-  font-size: 1.5em;
+  font-size: 1.4em;
   font-weight: bold;
   color: #2e7d32;
 }
