@@ -2,28 +2,40 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>グラフ変形ゲーム</title>
+  <title>Complex Plane Projection Game</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<h2>グラフ変形ゲーム</h2>
+<h2>複素数グラフ変形ゲーム（4軸→2平面）</h2>
 
-<p id="formula"></p>
-<p>目標点：<span id="target"></span></p>
-
-<div>
-  <button onclick="differentiate()">微分</button>
-  <button onclick="integrate()">積分</button>
-  <button onclick="addConst(1)">+1</button>
-  <button onclick="addConst(-1)">-1</button>
-  <button onclick="newProblem()">🔄 新しい問題</button>
+<div id="info">
+  <div id="formula"></div>
+  <div>目標点：<span id="target"></span></div>
 </div>
 
-<br>
-<canvas id="canvas" width="400" height="400"></canvas>
+<div id="projection">
+  表示平面：
+  <select onchange="setPlane(this.value)">
+    <option value="reX-reY">reX × reY</option>
+    <option value="reX-imX">reX × imX</option>
+    <option value="reX-imY">reX × imY</option>
+    <option value="reY-imX">reY × imX</option>
+    <option value="reY-imY">reY × imY</option>
+    <option value="imX-imY">imX × imY</option>
+  </select>
+</div>
 
-<p id="result"></p>
+<div id="controls">
+  <button onclick="addRe()">Re +1</button>
+  <button onclick="addIm()">Im +1</button>
+  <button onclick="rotate()">× i</button>
+  <button onclick="newProblem()">新しい問題</button>
+</div>
+
+<canvas id="canvas" width="420" height="420"></canvas>
+
+<div id="result"></div>
 
 <script src="main.js"></script>
 </body>
