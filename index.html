@@ -2,41 +2,42 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>Complex Extension of y = x²</title>
+  <title>y = x² の複素数拡張（4D→2D射影）</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<h2>y = x² の複素数拡張（4D → 2D射影）</h2>
+<h2>y = x² の複素数拡張（4D → 2D 射影）</h2>
 
 <div id="info">
   <div id="formula">y = x²</div>
-  <div>入力点 x：<span id="input"></span></div>
-  <div>出力点 y：<span id="output"></span></div>
-</div>
+  <div>表示平面：
+    <select onchange="setPlane(this.value)">
+      <option value="reX-reY">reX × reY</option>
+      <option value="reX-imY">reX × imY</option>
+    </select>
+  </div>
 
-<div>
-  表示平面：
-  <select onchange="setPlane(this.value)">
-    <option value="reX-imX">reX × imX（入力平面）</option>
-    <option value="reY-imY">reY × imY（出力平面）</option>
-    <option value="reX-reY">reX × reY</option>
-    <option value="reX-imY">reX × imY</option>
-    <option value="imX-reY">imX × reY</option>
-    <option value="imX-imY">imX × imY</option>
-  </select>
-</div>
+  <div>
+    表示モード：
+    <label><input type="radio" name="mode" value="slice" checked onchange="setMode(this.value)"> 断面</label>
+    <label><input type="radio" name="mode" value="surface" onchange="setMode(this.value)"> 面</label>
+  </div>
 
-<div id="controls">
-  <button onclick="moveX(1,0)">Re(x)+1</button>
-  <button onclick="moveX(-1,0)">Re(x)-1</button>
-  <button onclick="moveX(0,1)">Im(x)+1</button>
-  <button onclick="moveX(0,-1)">Im(x)-1</button>
-  <button onclick="randomX()">ランダム</button>
+  <div>
+    imX（断面位置）：
+    <input type="range" min="-5" max="5" step="1" value="0" oninput="setImX(this.value)">
+    <span id="imxValue">0</span>
+  </div>
 </div>
 
 <canvas id="canvas" width="420" height="420"></canvas>
 
+<p class="note">
+  ※ 面モードでは imX を動かしたすべての断面を重ねて表示します
+</p>
+
 <script src="main.js"></script>
 </body>
 </html>
+
