@@ -1,143 +1,56 @@
+\// ===============================
+// 複素数ユーティリティ
 // ===============================
-// 分数ユーティリティ
-// ===============================
-function gcd(a, b) {
-  return b === 0 ? a : gcd(b, a % b);
+function complex(re, im) {
+  return { re, im };
 }
 
-function frac(n, d = 1) {
-  if (d < 0) n = -n, d = -d;
-  const g = gcd(Math.abs(n), d);
-  return { num: n / g, den: d / g };
+function add(a, b) {
+  return complex(a.re + b.re, a.im + b.im);
 }
 
-function addFrac(a, b) {
-  return frac(
-    a.num * b.den + b.num * a.den,
-    a.den * b.den
-  );
-}
-
-function fracToNumber(f) {
-  return f.num / f.den;
+function mulI(z) {
+  // z * i
+  return complex(-z.im, z.re);
 }
 
 // ===============================
-// 分数HTML
+// ゲーム状態
 // ===============================
-function fracToHTML(c) {
-  if (c.den === 1) return `${c.num}`;
-  return `
-    <span class="fraction">
-      <span class="top">${c.num}</span>
-      <span class="bottom">${c.den}</span>
-    </span>
-  `;
-}
 
-// ===============================
-// 状態
-// ===============================
-let poly = [];
-let target = { x: 0, y: 0 };
+// 入力 w と出力 z = f(w)（今は恒等関数）
+let w = complex(0, 0);
+let z = complex(0, 0);
+
+// ターゲット
+let targetW = complex(0, 0);
+let targetZ = complex(0, 0);
 
 // ===============================
 // DOM
 // ===============================
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
-
-// ===============================
-// 数学処理
-// ===============================
-function evaluate(poly, x) {
-  return poly.reduce(
-    (sum, t) => sum + fracToNumber(t.coef) * x ** t.pow,
-    0
-  );
-}
-
-function differentiatePoly(poly) {
-  return poly
-    .filter(t => t.pow > 0)
-    .map(t => ({
-      coef: frac(t.coef.num * t.pow, t.coef.den),
-      pow: t.pow - 1
-    }));
-}
-
-function integratePoly(poly) {
-  return poly.map(t => ({
-    coef: frac(t.coef.num, t.coef.den * (t.pow + 1)),
-    pow: t.pow + 1
-  }));
-}
-
-function addConstant(poly, c) {
-  const result = [...poly];
-  const constant = result.find(t => t.pow === 0);
-
-  if (constant) {
-    constant.coef = addFrac(constant.coef, frac(c, 1));
-  } else {
-    result.push({ coef: frac(c, 1), pow: 0 });
-  }
-  return result;
-}
-
-function normalizePoly(poly) {
-  const map = {};
-
-  poly.forEach(t => {
-    if (!map[t.pow]) {
-      map[t.pow] = frac(t.coef.num, t.coef.den);
-    } else {
-      map[t.pow] = addFrac(map[t.pow], t.coef);
-    }
-  });
-
-  return Object.keys(map)
-    .map(p => ({
-      pow: Number(p),
-      coef: map[p]
-    }))
-    .filter(t => t.coef.num !== 0)
-    .sort((a, b) => b.pow - a.pow);
-}
-
-// ===============================
-// 表示
-// ===============================
-function polyToHTML(poly) {
-  if (poly.length === 0) return "0";
-
-  return poly.map((t, i) => {
-    const sign = t.coef.num < 0 ? "−" : (i === 0 ? "" : "+");
-
-    const absCoef = {
-      num: Math.abs(t.coef.num),
-      den: t.coef.den
-    };
-
-    const coefHTML =
-      absCoef.num === 1 && absCoef.den === 1 && t.pow !== 0
-        ? ""
-        : fracToHTML(absCoef);
-
-    if (t.pow === 0) return `${sign}${coefHTML}`;
-    if (t.pow === 1) return `${sign}${coefHTML}x`;
-    return `${sign}${coefHTML}x<sup>${t.pow}</sup>`;
-  }).join(" ");
-}
+const planeSelect = document.getElementById("plane");
 
 // ===============================
 // 描画
 // ===============================
-function draw() {
-  poly = normalizePoly(poly);
+function getCoords(plane, w, z) {
+  switch (plane) {
+    case "RxRy": return [w.re, z.re];
+    case "RxIy": return [w.re, z.im];
+    case "IxRy": return [w.im, z.re];
+    case "IxIy": return [w.im, z.im];
+    case "RyIy": return [z.re, z.im];
+    case "RxIx": return [w.re, w.im];
+  }
+}
 
+function draw() {
   ctx.clearRect(0, 0, 400, 400);
 
+  // 軸
   ctx.beginPath();
   ctx.moveTo(200, 0);
   ctx.lineTo(200, 400);
@@ -145,78 +58,79 @@ function draw() {
   ctx.lineTo(400, 200);
   ctx.stroke();
 
-  ctx.beginPath();
-  for (let px = -200; px <= 200; px++) {
-    const x = px / 20;
-    const y = evaluate(poly, x);
-    const py = -y * 20;
+  const plane = planeSelect.value;
 
-    if (px === -200) ctx.moveTo(200 + px, 200 + py);
-    else ctx.lineTo(200 + px, 200 + py);
-  }
-  ctx.stroke();
-
-  ctx.fillStyle = "red";
+  // 現在点
+  let [x, y] = getCoords(plane, w, z);
+  ctx.fillStyle = "blue";
   ctx.beginPath();
-  ctx.arc(
-    200 + target.x * 20,
-    200 - target.y * 20,
-    5,
-    0,
-    Math.PI * 2
-  );
+  ctx.arc(200 + x * 40, 200 - y * 40, 5, 0, Math.PI * 2);
   ctx.fill();
 
-  document.getElementById("formula").innerHTML =
-    "f(x) = " + polyToHTML(poly);
+  // 目標点
+  let [tx, ty] = getCoords(plane, targetW, targetZ);
+  ctx.fillStyle = "red";
+  ctx.beginPath();
+  ctx.arc(200 + tx * 40, 200 - ty * 40, 5, 0, Math.PI * 2);
+  ctx.fill();
 
-  document.getElementById("target").textContent =
-    `(${target.x}, ${target.y})`;
+  document.getElementById("info").textContent =
+    `w = ${w.re} + ${w.im}i , z = ${z.re} + ${z.im}i`;
 
-  const y = evaluate(poly, target.x);
+  // クリア判定（4成分すべて一致）
+  const clear =
+    w.re === targetW.re &&
+    w.im === targetW.im &&
+    z.re === targetZ.re &&
+    z.im === targetZ.im;
+
   document.getElementById("result").textContent =
-    Math.abs(y - target.y) < 1e-6 ? "🎉 クリア！" : "";
+    clear ? "🎉 完全一致！" : "";
+}
+
+// ===============================
+// 操作
+// ===============================
+function move(dx, di) {
+  w = add(w, complex(dx, di));
+  z = add(z, complex(dx, di)); // 今は恒等
+  draw();
+}
+
+function rotate() {
+  w = mulI(w);
+  z = mulI(z);
+  draw();
 }
 
 // ===============================
 // ランダム問題
 // ===============================
-function randInt(min, max) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
+function rand() {
+  return Math.floor(Math.random() * 5) - 2;
 }
 
 function newProblem() {
-  poly = [
-    { coef: frac(randInt(1, 3), 1), pow: 2 },
-    { coef: frac(randInt(-3, 3), 1), pow: 1 },
-    { coef: frac(randInt(-3, 3), 1), pow: 0 }
-  ];
+  w = complex(0, 0);
+  z = complex(0, 0);
 
-  target = {
-    x: randInt(-4, 4),
-    y: randInt(-4, 4)
-  };
+  targetW = complex(rand(), rand());
+  targetZ = complex(rand(), rand());
 
   document.getElementById("result").textContent = "";
   draw();
 }
 
 // ===============================
-// イベント登録（重要）
+// イベント
 // ===============================
-document.getElementById("btn-diff").onclick = () =>
-  poly = (draw(), normalizePoly(differentiatePoly(poly)));
-
-document.getElementById("btn-int").onclick = () =>
-  poly = (draw(), normalizePoly(integratePoly(poly)));
-
-document.getElementById("btn-plus").onclick = () =>
-  poly = (draw(), normalizePoly(addConstant(poly, 1)));
-
-document.getElementById("btn-minus").onclick = () =>
-  poly = (draw(), normalizePoly(addConstant(poly, -1)));
-
-document.getElementById("btn-new").onclick = newProblem;
+document.getElementById("px").onclick = () => move(1, 0);
+document.getElementById("mx").onclick = () => move(-1, 0);
+document.getElementById("pi").onclick = () => move(0, 1);
+document.getElementById("mi").onclick = () => move(0, -1);
+document.getElementById("rot").onclick = rotate;
+document.getElementById("new").onclick = newProblem;
+planeSelect.onchange = draw;
 
 // 初期化
 newProblem();
