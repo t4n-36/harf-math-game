@@ -1,139 +1,132 @@
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
-
-const size = 210;
 const scale = 20;
 const range = 10;
 
+// 現在の平面
 let plane = "reX-reY";
-let mode = "slice";
-let imX = 0;
 
-// ===== y = x^2（x は複素数）=====
-function f(reX, imX) {
+// 固定値（4軸すべて持つ）
+let fixed = {
+  reX: 0,
+  imX: 0,
+  reY: 0,
+  imY: 0
+};
+
+// 軸ペア一覧
+const axes = ["reX", "imX", "reY", "imY"];
+
+// y = x^2
+function square(reX, imX) {
   return {
-    reX,
-    imX,
     reY: reX * reX - imX * imX,
     imY: 2 * reX * imX
   };
 }
 
-// ===== 軸定義（★ここが核心）=====
-const axisGetter = {
-  reX: z => z.reX,
-  imX: z => z.imX,
-  reY: z => z.reY,
-  imY: z => z.imY
-};
+// UI更新
+function updateFixedControls() {
+  const box = document.getElementById("fixedControls");
+  box.innerHTML = "";
 
-// ===== UI =====
-function setPlane(p) {
-  plane = p;
-  draw();
+  const [ax, ay] = plane.split("-");
+  const fixedAxes = axes.filter(a => a !== ax && a !== ay);
+
+  fixedAxes.forEach(a => {
+    const label = document.createElement("label");
+    label.innerHTML = `
+      ${a} 固定：
+      <input type="range" min="-5" max="5" step="0.1"
+        value="${fixed[a]}"
+        oninput="fixed.${a}=parseFloat(this.value); draw();">
+      <span>${fixed[a]}</span>
+    `;
+    box.appendChild(label);
+  });
 }
 
-function setMode(m) {
-  mode = m;
-  draw();
-}
-
-function setImX(v) {
-  imX = Number(v);
-  document.getElementById("imxValue").textContent = v;
-  draw();
-}
-
-// ===== 表示用文字 =====
-function axisValueText(axis, v) {
-  if (axis.startsWith("re")) return v.toString();
-  if (axis.startsWith("im")) return v === 1 ? "i" : `${v}i`;
-}
-
-// ===== 軸描画 =====
-function drawAxes(xAxis, yAxis) {
-  ctx.strokeStyle = "#555";
+// 軸描画
+function drawAxes() {
+  ctx.strokeStyle = "#888";
   ctx.lineWidth = 1;
 
   ctx.beginPath();
-  ctx.moveTo(size, 0);
-  ctx.lineTo(size, size * 2);
-  ctx.moveTo(0, size);
-  ctx.lineTo(size * 2, size);
+  ctx.moveTo(250, 0);
+  ctx.lineTo(250, 500);
+  ctx.moveTo(0, 250);
+  ctx.lineTo(500, 250);
   ctx.stroke();
 
-  ctx.font = "11px sans-serif";
-  ctx.fillStyle = "#222";
+  ctx.fillStyle = "#444";
+  ctx.font = "12px sans-serif";
 
-  // 軸名
-  ctx.fillText(xAxis, size * 2 - 50, size - 6);
-  ctx.fillText(yAxis, size + 6, 14);
-
-  // 固定値表示
-  ctx.fillStyle = "#666";
-  ctx.fillText(`imX = ${imX}i`, 10, 20);
-
-  // 目盛り
   for (let i = -range; i <= range; i++) {
-    const p = i * scale;
-
-    // x
-    ctx.beginPath();
-    ctx.moveTo(size + p, size - 4);
-    ctx.lineTo(size + p, size + 4);
-    ctx.stroke();
-    if (i !== 0)
-      ctx.fillText(axisValueText(xAxis, i), size + p - 6, size + 18);
-
-    // y
-    ctx.beginPath();
-    ctx.moveTo(size - 4, size - p);
-    ctx.lineTo(size + 4, size - p);
-    ctx.stroke();
-    if (i !== 0)
-      ctx.fillText(axisValueText(yAxis, i), size + 8, size - p + 4);
+    if (i === 0) continue;
+    ctx.fillText(i, 250 + i * scale - 5, 265);
+    ctx.fillText(i, 235, 250 - i * scale + 4);
   }
+
+  const [ax, ay] = plane.split("-");
+  ctx.fillText(ax, 480, 245);
+  ctx.fillText(ay, 255, 15);
 }
 
-// ===== 曲線描画 =====
-function drawSlice(b, color, width) {
-  const [xAxis, yAxis] = plane.split("-");
-
-  ctx.strokeStyle = color;
-  ctx.lineWidth = width;
+// グラフ描画
+function drawGraph() {
+  const [ax, ay] = plane.split("-");
+  ctx.strokeStyle = "#000";
   ctx.beginPath();
 
-  for (let px = -size; px <= size; px++) {
-    const reX = px / scale;
-    const z = f(reX, b);
+  for (let t = -range; t <= range; t += 0.05) {
+    let vars = { ...fixed };
 
-    const xVal = axisGetter[xAxis](z);
-    const yVal = axisGetter[yAxis](z);
+    if (ax === "reX" || ax === "imX") vars[ax] = t;
+    if (ay === "reX" || ay === "imX") vars[ay] = t;
 
-    const cx = size + xVal * scale;
-    const cy = size - yVal * scale;
+    const y = square(vars.reX, vars.imX);
+    vars.reY = y.reY;
+    vars.imY = y.imY;
 
-    if (px === -size) ctx.moveTo(cx, cy);
+    const xVal = vars[ax];
+    const yVal = vars[ay];
+
+    const cx = 250 + xVal * scale;
+    const cy = 250 - yVal * scale;
+
+    if (t === -range) ctx.moveTo(cx, cy);
     else ctx.lineTo(cx, cy);
   }
   ctx.stroke();
 }
 
-// ===== 全体描画 =====
-function draw() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  const [xAxis, yAxis] = plane.split("-");
-  drawAxes(xAxis, yAxis);
-
-  if (mode === "surface") {
-    for (let b = -range; b <= range; b += 0.5) {
-      drawSlice(b, "rgba(0,0,0,0.07)", 1);
-    }
-  }
-
-  drawSlice(imX, "#1976d2", 2);
+// 固定値表示
+function drawFixedInfo() {
+  ctx.fillStyle = "#006";
+  ctx.font = "13px sans-serif";
+  let y = 20;
+  const [ax, ay] = plane.split("-");
+  axes.filter(a => a !== ax && a !== ay).forEach(a => {
+    ctx.fillText(`${a} = ${fixed[a]}`, 10, y);
+    y += 16;
+  });
 }
 
+function draw() {
+  ctx.clearRect(0, 0, 500, 500);
+  drawAxes();
+  drawGraph();
+  drawFixedInfo();
+}
+
+// イベント
+document.getElementById("planeSelect").onchange = e => {
+  plane = e.target.value;
+  updateFixedControls();
+  draw();
+};
+
+// 初期化
+updateFixedControls();
 draw();
 
