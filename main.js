@@ -1,7 +1,6 @@
 // ===============================
 // 分数ユーティリティ
 // ===============================
-
 function gcd(a, b) {
   return b === 0 ? a : gcd(b, a % b);
 }
@@ -24,24 +23,14 @@ function fracToNumber(f) {
 }
 
 // ===============================
-// 分数HTML（確実に縦）
+// 分数HTML（縦分数）
 // ===============================
-
 function fracToHTML(c) {
   if (c.den === 1) return `${c.num}`;
   return `
-    <span style="
-      display:inline-flex;
-      flex-direction:column;
-      align-items:center;
-      vertical-align:middle;
-      font-size:0.9em;
-      margin:0 2px;
-    ">
-      <span style="border-bottom:1px solid black; padding:0 2px;">
-        ${c.num}
-      </span>
-      <span>${c.den}</span>
+    <span class="fraction">
+      <span class="top">${c.num}</span>
+      <span class="bottom">${c.den}</span>
     </span>
   `;
 }
@@ -49,9 +38,8 @@ function fracToHTML(c) {
 // ===============================
 // 多項式（初期値）
 // ===============================
-
 let poly = [
-  { coef: frac(1, 1), pow: 2 } // f(x)=x^2
+  { coef: frac(1, 1), pow: 2 } // x^2
 ];
 
 // 目標点
@@ -60,7 +48,6 @@ const target = { x: 4, y: 0 };
 // ===============================
 // DOM
 // ===============================
-
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 
@@ -70,8 +57,6 @@ document.getElementById("target").textContent =
 // ===============================
 // 数学処理
 // ===============================
-
-// 評価（描画専用）
 function evaluate(poly, x) {
   return poly.reduce(
     (sum, t) => sum + fracToNumber(t.coef) * x ** t.pow,
@@ -79,7 +64,6 @@ function evaluate(poly, x) {
   );
 }
 
-// 微分
 function differentiatePoly(poly) {
   return poly
     .filter(t => t.pow > 0)
@@ -89,7 +73,6 @@ function differentiatePoly(poly) {
     }));
 }
 
-// 積分（定数なし）
 function integratePoly(poly) {
   return poly.map(t => ({
     coef: frac(t.coef.num, t.coef.den * (t.pow + 1)),
@@ -97,7 +80,6 @@ function integratePoly(poly) {
   }));
 }
 
-// 定数加算（必ず合算）
 function addConstant(poly, c) {
   const result = [...poly];
   const constant = result.find(t => t.pow === 0);
@@ -111,9 +93,8 @@ function addConstant(poly, c) {
 }
 
 // ===============================
-// 正規化（同じ次数をまとめる）
+// 正規化（同次数まとめる）
 // ===============================
-
 function normalizePoly(poly) {
   const map = {};
 
@@ -135,15 +116,13 @@ function normalizePoly(poly) {
 }
 
 // ===============================
-// 数式表示（HTML）
+// 数式表示
 // ===============================
-
 function polyToHTML(poly) {
   if (poly.length === 0) return "0";
 
   return poly.map((t, i) => {
-    const sign =
-      t.coef.num < 0 ? "−" : (i === 0 ? "" : "+");
+    const sign = t.coef.num < 0 ? "−" : (i === 0 ? "" : "+");
 
     const absCoef = {
       num: Math.abs(t.coef.num),
@@ -164,7 +143,6 @@ function polyToHTML(poly) {
 // ===============================
 // 描画
 // ===============================
-
 function draw() {
   poly = normalizePoly(poly);
 
@@ -205,34 +183,32 @@ function draw() {
   );
   ctx.fill();
 
-  // 数式表示
   document.getElementById("formula").innerHTML =
     "f(x) = " + polyToHTML(poly);
 
-  // クリア判定
   const y = evaluate(poly, target.x);
   document.getElementById("result").textContent =
     Math.abs(y - target.y) < 1e-6 ? "🎉 クリア！" : "";
 }
 
 // ===============================
-// 操作
+// 操作（必ず正規化）
 // ===============================
+function setPoly(newPoly) {
+  poly = normalizePoly(newPoly);
+  draw();
+}
 
 function differentiate() {
-  poly = normalizePoly(differentiatePoly(poly));
-  draw();
+  setPoly(differentiatePoly(poly));
 }
 
 function integrate() {
-  poly = normalizePoly(integratePoly(poly));
-  draw();
+  setPoly(integratePoly(poly));
 }
 
 function addConst(c) {
-  poly = normalizePoly(addConstant(poly, c));
-  draw();
+  setPoly(addConstant(poly, c));
 }
 
-// 初期描画
 draw();
