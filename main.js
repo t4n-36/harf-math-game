@@ -1,21 +1,20 @@
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
+
 const scale = 20;
 const range = 10;
 
-// 現在の平面
 let plane = "reX-reY";
+let mode = "slice";
 
-// 固定値（4軸すべて持つ）
+const axes = ["reX", "imX", "reY", "imY"];
+
 let fixed = {
   reX: 0,
   imX: 0,
   reY: 0,
   imY: 0
 };
-
-// 軸ペア一覧
-const axes = ["reX", "imX", "reY", "imY"];
 
 // y = x^2
 function square(reX, imX) {
@@ -25,7 +24,7 @@ function square(reX, imX) {
   };
 }
 
-// UI更新
+// UI（固定値：整数）
 function updateFixedControls() {
   const box = document.getElementById("fixedControls");
   box.innerHTML = "";
@@ -34,23 +33,20 @@ function updateFixedControls() {
   const fixedAxes = axes.filter(a => a !== ax && a !== ay);
 
   fixedAxes.forEach(a => {
-    const label = document.createElement("label");
-    label.innerHTML = `
-      ${a} 固定：
-      <input type="range" min="-5" max="5" step="0.1"
-        value="${fixed[a]}"
-        oninput="fixed.${a}=parseFloat(this.value); draw();">
+    const container = document.createElement("div");
+    container.innerHTML = `
+      ${a}：
+      <button onclick="fixed.${a}--; draw()">−</button>
       <span>${fixed[a]}</span>
+      <button onclick="fixed.${a}++; draw()">＋</button>
     `;
-    box.appendChild(label);
+    box.appendChild(container);
   });
 }
 
 // 軸描画
 function drawAxes() {
-  ctx.strokeStyle = "#888";
-  ctx.lineWidth = 1;
-
+  ctx.strokeStyle = "#999";
   ctx.beginPath();
   ctx.moveTo(250, 0);
   ctx.lineTo(250, 500);
@@ -72,27 +68,23 @@ function drawAxes() {
   ctx.fillText(ay, 255, 15);
 }
 
-// グラフ描画
-function drawGraph() {
+// 曲線1本
+function drawCurve(fixedVars) {
   const [ax, ay] = plane.split("-");
-  ctx.strokeStyle = "#000";
   ctx.beginPath();
 
   for (let t = -range; t <= range; t += 0.05) {
-    let vars = { ...fixed };
+    let v = { ...fixedVars };
 
-    if (ax === "reX" || ax === "imX") vars[ax] = t;
-    if (ay === "reX" || ay === "imX") vars[ay] = t;
+    if (ax === "reX" || ax === "imX") v[ax] = t;
+    if (ay === "reX" || ay === "imX") v[ay] = t;
 
-    const y = square(vars.reX, vars.imX);
-    vars.reY = y.reY;
-    vars.imY = y.imY;
+    const y = square(v.reX, v.imX);
+    v.reY = y.reY;
+    v.imY = y.imY;
 
-    const xVal = vars[ax];
-    const yVal = vars[ay];
-
-    const cx = 250 + xVal * scale;
-    const cy = 250 - yVal * scale;
+    const cx = 250 + v[ax] * scale;
+    const cy = 250 - v[ay] * scale;
 
     if (t === -range) ctx.moveTo(cx, cy);
     else ctx.lineTo(cx, cy);
@@ -100,11 +92,30 @@ function drawGraph() {
   ctx.stroke();
 }
 
+// グラフ描画
+function drawGraph() {
+  ctx.strokeStyle = "#000";
+
+  if (mode === "slice") {
+    drawCurve(fixed);
+  } else {
+    ctx.strokeStyle = "rgba(0,0,0,0.15)";
+    for (let k = -5; k <= 5; k++) {
+      let vars = { ...fixed };
+      const [ax, ay] = plane.split("-");
+      const other = axes.filter(a => a !== ax && a !== ay)[0];
+      vars[other] = k;
+      drawCurve(vars);
+    }
+  }
+}
+
 // 固定値表示
 function drawFixedInfo() {
   ctx.fillStyle = "#006";
   ctx.font = "13px sans-serif";
   let y = 20;
+
   const [ax, ay] = plane.split("-");
   axes.filter(a => a !== ax && a !== ay).forEach(a => {
     ctx.fillText(`${a} = ${fixed[a]}`, 10, y);
@@ -126,7 +137,13 @@ document.getElementById("planeSelect").onchange = e => {
   draw();
 };
 
+document.querySelectorAll("input[name='mode']").forEach(r => {
+  r.onchange = e => {
+    mode = e.target.value;
+    draw();
+  };
+});
+
 // 初期化
 updateFixedControls();
 draw();
-
