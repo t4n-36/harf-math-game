@@ -1,5 +1,3 @@
-
-
 // ===============================
 // 分数ユーティリティ
 // ===============================
@@ -33,7 +31,7 @@ function fracToNumber(f) {
 }
 
 // ===============================
-// 多項式の状態
+// 多項式
 // f(x) = x^2
 // ===============================
 
@@ -58,7 +56,7 @@ document.getElementById("target").textContent =
 // 数学処理
 // ===============================
 
-// 評価（描画専用：ここだけ数値化）
+// 評価（描画用）
 function evaluate(poly, x) {
   return poly.reduce(
     (sum, t) =>
@@ -85,15 +83,21 @@ function integratePoly(poly) {
   }));
 }
 
-// 定数加算
+// 定数加算（定数項をまとめる）
 function addConstant(poly, c) {
   const result = [...poly];
-  result.push({ coef: frac(c, 1), pow: 0 });
+  const constant = result.find(t => t.pow === 0);
+
+  if (constant) {
+    constant.coef = addFrac(constant.coef, frac(c, 1));
+  } else {
+    result.push({ coef: frac(c, 1), pow: 0 });
+  }
   return result;
 }
 
 // ===============================
-// 数式表示
+// 数式表示（符号対応）
 // ===============================
 
 function coefToString(c) {
@@ -105,13 +109,18 @@ function polyToString(poly) {
   if (poly.length === 0) return "0";
 
   return poly
-    .map(t => {
-      const c = coefToString(t.coef);
-      if (t.pow === 0) return c;
-      if (t.pow === 1) return `${c}x`;
-      return `${c}x^${t.pow}`;
+    .map((t, i) => {
+      const sign = t.coef.num < 0 ? "-" : (i === 0 ? "" : "+");
+      const c = coefToString({
+        num: Math.abs(t.coef.num),
+        den: t.coef.den
+      });
+
+      if (t.pow === 0) return `${sign}${c}`;
+      if (t.pow === 1) return `${sign}${c}x`;
+      return `${sign}${c}x^${t.pow}`;
     })
-    .join(" + ");
+    .join(" ");
 }
 
 // ===============================
@@ -156,18 +165,18 @@ function draw() {
   );
   ctx.fill();
 
-  // 数式表示
+  // 数式
   document.getElementById("formula").textContent =
     "f(x) = " + polyToString(poly);
 
   // クリア判定
   const y = evaluate(poly, target.x);
   document.getElementById("result").textContent =
-    Math.abs(y - target.y) < 1e-3 ? "🎉 クリア！" : "";
+    Math.abs(y - target.y) < 1e-6 ? "🎉 クリア！" : "";
 }
 
 // ===============================
-// 操作ボタン
+// 操作
 // ===============================
 
 function differentiate() {
