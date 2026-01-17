@@ -1,15 +1,27 @@
-\<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>y = x² 複素数拡張（4D→2D）</title>
+  <title>複素関数可視化（4D→2D）</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<h1>y = x² の複素数拡張（4次元 → 2次元射影）</h1>
+<h1>複素関数の4次元→2次元可視化</h1>
 
 <div id="ui">
+  <div>
+    関数：
+    <select id="funcSelect">
+      <option value="square">y = x²</option>
+      <option value="cube">y = x³</option>
+      <option value="quartic">y = x⁴</option>
+      <option value="reciprocal">y = 1/x</option>
+      <option value="exp">y = eˣ</option>
+      <option value="sin">y = sin(x)</option>
+    </select>
+  </div>
+
   <div>
     表示平面：
     <select id="planeSelect">
@@ -22,8 +34,8 @@
 
   <div>
     表示モード：
-    <label><input type="radio" name="mode" value="slice" checked> 断面</label>
-    <label><input type="radio" name="mode" value="surface"> 面</label>
+    <label><input type="radio" name="mode" value="slice" checked>断面</label>
+    <label><input type="radio" name="mode" value="surface">面</label>
   </div>
 
   <div id="fixedControls"></div>
@@ -34,3 +46,4 @@
 <script src="main.js"></script>
 </body>
 </html>
+
