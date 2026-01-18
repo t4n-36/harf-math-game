@@ -1,5 +1,6 @@
 body {
   font-family: sans-serif;
+  background: #f5f7fb;
   text-align: center;
 }
 
@@ -8,15 +9,21 @@ body {
 }
 
 canvas {
-  border: 1px solid #444;
-  margin-top: 10px;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
 }
 
-#info {
-  margin-top: 10px;
+#calcBox {
+  width: 480px;
+  margin: 12px auto;
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 10px;
+  text-align: left;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
-#axisInfo {
-  font-weight: bold;
-  margin-bottom: 5px;
+pre {
+  margin: 6px 0 0;
 }
